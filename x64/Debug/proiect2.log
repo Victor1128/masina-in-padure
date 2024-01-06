@@ -1,0 +1,39 @@
+﻿  C:freeglut.dll
+  C:glew32.dll
+  C:glew32s.dll
+  3 File(s) copied
+  C:glfw3.dll
+  C:glfw3dll.dll
+  C:glfw3_mt.dll
+  3 File(s) copied
+  C:SOIL.dll
+  1 File(s) copied
+  glm.cpp
+  main.cpp
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(50,62): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(50,26): warning C4244: 'initializing': conversion from 'double' to 'const float', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(52,39): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(53,39): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(53,23): warning C4244: 'initializing': conversion from 'float' to 'const int', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(57,21): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(57,19): warning C4244: 'initializing': conversion from 'float' to 'const int', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(58,19): warning C4244: 'initializing': conversion from 'const float' to 'int', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(58,17): warning C4244: 'initializing': conversion from 'const float' to 'const int', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(60,19): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(60,15): warning C4244: 'initializing': conversion from 'float' to 'const int', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(391,19): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(391,44): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(437,51): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(437,18): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(450,51): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\main.cpp(450,18): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  imageloader.cpp
+  loadShaders.cpp
+  Generating Code...
+  glad.c
+  proiect2.vcxproj -> C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\x64\Debug\proiect2.exe
+  C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\lib\x64\GL\DLLs\freeglut.dll
+  C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\lib\x64\GL\DLLs\glew32.dll
+  2 File(s) copied
+  C:\Users\victo\OneDrive\Documents\Facultate\anul3\sem1\grafica\Laborator\proiect2\lib\x64\GLFW\DLLs\glfw3.dll
+  1 File(s) copied
