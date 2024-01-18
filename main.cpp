@@ -16,6 +16,8 @@
 #include <math.h>			//	Biblioteca pentru calcule matematice;
 #include <GL/glew.h>        //  Definește prototipurile functiilor OpenGL si constantele necesare pentru programarea OpenGL moderna; 
 #include <GL/freeglut.h>    //	Include functii pentru: 
+#include <SOIL.h>
+
 							//	- gestionarea ferestrelor si evenimentelor de tastatura si mouse, 
 							//  - desenarea de primitive grafice precum dreptunghiuri, cercuri sau linii, 
 							//  - crearea de meniuri si submeniuri;
@@ -72,33 +74,24 @@ int ACTUAL_NUM_COPACI;
 
 
 GLuint
-	VaoId[NUM_COPACI * 2],
-	EboId[NUM_COPACI * 2],
-	VboId[NUM_COPACI * 2],
+	VaoId[NUM_COPACI * 2 + 2],
+	EboId[NUM_COPACI * 2 + 2],
+	VboId[NUM_COPACI * 2 + 2],
 	ProgramId,
+	//myMatrixLocation,
 	viewLocation,
 	projLocation,
-	codColLocation;
+	//matrRotlLocation,
+	codColLocation,
+	texture;
 
-// DACA VREM MAI MULTI COPACI AICI SCHIMBAM
+//glm::mat4
+//myMatrix, matrRot;
 
-/*int NUM_RANDURI = 6;
-int NUM_COPACI_PE_RAND = 15;
-int START_X_RIGHT = 80;
-int END_X_RIGHT = 200;
-int START_X_LEFT = -200;
-int END_X_LEFT = -80;
-int DIF_X = 60;
-int START_Y = -400;
-int END_Y = 400;
-int DIF_Y = 60;
-int ROAD_WIDTH = 160;
-int ROAD_LENGHT = 800;
-*/
 int index, index_aux;
 
 // variabile pentru matricea de vizualizare
-float Refx = 0.0f, Refy = 0.0f, Refz = 0.0f;
+float Refx = 0.0f, Refy = 0.0f, Refz = 300.0f;
 float alpha = 0.0f, beta = 0.0f, dist = 300.0f;
 float Obsx, Obsy, Obsz;
 float Vx = 0.0f, Vy = 0.0f, Vz = -1.0f;
@@ -174,6 +167,27 @@ void CreateShaders(void)
 	glUseProgram(ProgramId);
 }
 
+void LoadTexture(const char* photoPath)
+{
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	//	Desfasurarea imaginii pe orizonatala/verticala in functie de parametrii de texturare;
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	int width, height;
+	unsigned char* image = SOIL_load_image(photoPath, &width, &height, 0, SOIL_LOAD_RGB);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	SOIL_free_image_data(image);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+
 void CreateVAO1(float x, float y, float z, int i)
 {
 	// SFERA
@@ -198,7 +212,7 @@ void CreateVAO1(float x, float y, float z, int i)
 			// identificator ptr varf; coordonate + culoare + indice la parcurgerea meridianelor
 			index = merid * (NR_PARR_SFERA + 1) + parr;
 			Vertices1[index] = glm::vec4(x_vf, y_vf, z_vf, 1.0);
-			Colors1[index] = glm::vec3(0, 0.5, 0);
+			Colors1[index] = glm::vec3(0.f, 0.5f, 0.f);
 			Indices1[index] = index;
 
 			// indice ptr acelasi varf la parcurgerea paralelelor
@@ -313,73 +327,93 @@ void CreateVAO1(float x, float y, float z, int i)
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)(sizeof(Vertices)));
 }
 
-void CreateVAO2(float z)
+void CreateRoadVBO(void)
 {
-	// varfurile 
-	// (4) Matricele pentru varfuri, culori, indici
-	glm::vec4 Vertices[(NR_PARR_CILINDRU + 1) * NR_MERID_CILINDRU];
-	glm::vec3 Colors[(NR_PARR_CILINDRU + 1) * NR_MERID_CILINDRU];
-	GLushort Indices[2 * (NR_PARR_CILINDRU + 1) * NR_MERID_CILINDRU + 4 * (NR_PARR_CILINDRU + 1) * NR_MERID_CILINDRU];
-	for (int merid = 0; merid < NR_MERID_CILINDRU; merid++)
-	{
-		for (int parr = 0; parr < NR_PARR_CILINDRU + 1; parr++)
-		{
-			// implementarea reprezentarii parametrice 
-			float u = U_MIN_CILINDRU + parr * step_u_cilindru; // valori pentru u si v
-			float v = V_MIN_CILINDRU + merid * step_v_cilindru;
-			float x_vf = radius_cl * cosf(u); // coordonatele varfului corespunzator lui (u,v)
-			float y_vf = radius_cl * sinf(u);
-			float z_vf = z + v;
 
-			// identificator ptr varf; coordonate + culoare + indice la parcurgerea meridianelor
-			index = merid * (NR_PARR_CILINDRU + 1) + parr;
-			Vertices[index] = glm::vec4(x_vf, y_vf, z_vf, 1.0);
-			Colors[index] = glm::vec3(139 / 255., 69 / 255., 19 / 255.);
-			Indices[index] = index;
-
-			// indice ptr acelasi varf la parcurgerea paralelelor
-			index_aux = parr * (NR_MERID_CILINDRU)+merid;
-			Indices[(NR_PARR_CILINDRU + 1) * NR_MERID_CILINDRU + index_aux] = index;
-
-			// indicii pentru desenarea fetelor, pentru varful curent sunt definite 4 varfuri
-			if ((parr + 1) % (NR_PARR_CILINDRU + 1) != 0) // varful considerat sa nu fie Polul Nord
-			{
-				int AUX = 2 * (NR_PARR_CILINDRU + 1) * NR_MERID_CILINDRU;
-				int index1 = index; // varful v considerat
-				int index2 = index + (NR_PARR_CILINDRU + 1); // dreapta lui v, pe meridianul urmator
-				int index3 = index2 + 1;  // dreapta sus fata de v
-				int index4 = index + 1;  // deasupra lui v, pe acelasi meridian
-				if (merid == NR_MERID_CILINDRU - 1)  // la ultimul meridian, trebuie revenit la meridianul initial
-				{
-					index2 = index2 % (NR_PARR_CILINDRU + 1);
-					index3 = index3 % (NR_PARR_CILINDRU + 1);
-				}
-				Indices[AUX + 4 * index] = index1;  // unele valori ale lui Indices, corespunzatoare Polului Nord, au valori neadecvate
-				Indices[AUX + 4 * index + 1] = index2;
-				Indices[AUX + 4 * index + 2] = index3;
-				Indices[AUX + 4 * index + 3] = index4;
-			}
-		}
+	//	Atributele varfurilor -  COORDONATE, CULORI, COORDONATE DE TEXTURARE;
+	GLfloat Vertices[] = {
+		//	Coordonate;												Culori;				Coordonate de texturare;
+	   END_X_LEFT - 3 * radius_cl, END_Y, -20.0f * PI,	1.0f,		0.0f, 0.0f, 0.0f,	0.0f, 0.0f,	// Stanga jos;
+   START_X_RIGHT - 1.5 * radius_cl,  END_Y, -20.0f * PI, 1.0f,		0.0f, 0.0f, 0.0f,	0.0f, 1.0f, // Dreapta jos;
+ START_X_RIGHT - 1.5 * radius_cl,  START_Y, -20.0f * PI, 1.0f,		0.0f, 0.0f, 0.0f,	1.0f, 1.0f,	// Dreapta sus;
+	 END_X_LEFT - 3 * radius_cl, START_Y, -20.0f * PI, 1.0f,		0.0f, 0.0f, 0.0f,	1.0f, 0.0f  // Stanga sus;
 	};
-	// generare VAO/buffere
-	glGenVertexArrays(1, &VaoId[0]);
-	glBindVertexArray(VaoId[0]);
-	glGenBuffers(1, &VboId[0]); // atribute
-	glGenBuffers(1, &EboId[0]); // indici
 
-	// legare+"incarcare" buffer
-	glBindBuffer(GL_ARRAY_BUFFER, VboId[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices) + sizeof(Colors), NULL, GL_STATIC_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertices), Vertices);
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(Vertices), sizeof(Colors), Colors);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EboId[0]);
+	//	Indicii care determina ordinea de parcurgere a varfurilor;
+	GLuint Indices[] = {
+	  0, 1, 2,  //	Primul triunghi;
+	  0, 2, 3	//  Al doilea triunghi;
+	};
+
+	//  Transmiterea datelor prin buffere;
+
+	//  Se creeaza / se leaga un VAO (Vertex Array Object) - util cand se utilizeaza mai multe VBO;
+	glGenVertexArrays(1, &VaoId[NUM_COPACI * 2]);                                                   //  Generarea VAO si indexarea acestuia catre variabila VaoId;
+	glBindVertexArray(VaoId[NUM_COPACI * 2]);
+
+	//  Se creeaza un buffer pentru VARFURI - COORDONATE, CULORI si TEXTURARE;
+	glGenBuffers(1, &VboId[NUM_COPACI * 2]);													//  Generarea bufferului si indexarea acestuia catre variabila VboId;
+	glBindBuffer(GL_ARRAY_BUFFER, VboId[NUM_COPACI * 2]);										//  Setarea tipului de buffer - atributele varfurilor;
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+
+	//	Se creeaza un buffer pentru INDICI;
+	glGenBuffers(1, &EboId[NUM_COPACI * 2]);														//  Generarea bufferului si indexarea acestuia catre variabila EboId;
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EboId[NUM_COPACI * 2]);									//  Setarea tipului de buffer - atributele varfurilor;
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 
-	// atributele; 
-	glEnableVertexAttribArray(0); // atributul 0 = pozitie
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)(0));
-	glEnableVertexAttribArray(1); // atributul 1 = culoare
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)(sizeof(Vertices)));
+	//	Se activeaza lucrul cu atribute;
+	//  Se asociaza atributul (0 = coordonate) pentru shader;
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)0);
+	//  Se asociaza atributul (1 =  culoare) pentru shader;
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(4 * sizeof(GLfloat)));
+	//  Se asociaza atributul (2 =  texturare) pentru shader;
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(7 * sizeof(GLfloat)));
+}
+
+void CreateGroundVBO(void)
+{
+
+	//	Atributele varfurilor -  COORDONATE, CULORI, COORDONATE DE TEXTURARE;
+	GLfloat Vertices[] = {
+		//	Coordonate;									Culori;				
+	   START_X_LEFT * 2, END_Y, -20.1f * PI, 1.0f,		65.f / 255.f,152.f / 255.f, 10.f / 255.f,	// Stanga jos;
+	 END_X_RIGHT * 2,  END_Y, -20.1f * PI, 1.0f,		65.f / 255.f,152.f / 255.f, 10.f / 255.f,	// Dreapta jos;
+	 END_X_RIGHT * 2,  START_Y , -20.1f * PI, 1.0f,		65.f / 255.f,152.f / 255.f, 10.f / 255.f,	// Dreapta sus;
+	START_X_LEFT * 2, START_Y, -20.0f * PI, 1.0f,		65.f / 255.f,152.f / 255.f, 10.f / 255.f,	// Stanga sus;
+	};
+
+	//	Indicii care determina ordinea de parcurgere a varfurilor;
+	GLuint Indices[] = {
+	  0, 1, 2,  //	Primul triunghi;
+	  0, 2, 3	//  Al doilea triunghi;
+	};
+
+	//  Transmiterea datelor prin buffere;
+
+	//  Se creeaza / se leaga un VAO (Vertex Array Object) - util cand se utilizeaza mai multe VBO;
+	glGenVertexArrays(1, &VaoId[NUM_COPACI * 2 + 1]);                                                   //  Generarea VAO si indexarea acestuia catre variabila VaoId;
+	glBindVertexArray(VaoId[NUM_COPACI * 2 + 1]);
+
+	//  Se creeaza un buffer pentru VARFURI - COORDONATE, CULORI si TEXTURARE;
+	glGenBuffers(1, &VboId[NUM_COPACI * 2 + 1]);													//  Generarea bufferului si indexarea acestuia catre variabila VboId;
+	glBindBuffer(GL_ARRAY_BUFFER, VboId[NUM_COPACI * 2 + 1]);										//  Setarea tipului de buffer - atributele varfurilor;
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+
+	//	Se creeaza un buffer pentru INDICI;
+	glGenBuffers(1, &EboId[NUM_COPACI * 2 + 1]);														//  Generarea bufferului si indexarea acestuia catre variabila EboId;
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EboId[NUM_COPACI * 2 + 1]);									//  Setarea tipului de buffer - atributele varfurilor;
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
+
+	//	Se activeaza lucrul cu atribute;
+	//  Se asociaza atributul (0 = coordonate) pentru shader;
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)0);
+	//  Se asociaza atributul (1 =  culoare) pentru shader;
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(4 * sizeof(GLfloat)));
 }
 
 //	Schimba inaltimea/latimea scenei in functie de modificarile facute de utilizator ferestrei (redimensionari);
@@ -517,22 +551,22 @@ void RenderFunction(void)
 					(GLvoid*)((2 * (NR_PARR_CILINDRU + 1) * (NR_MERID_CILINDRU)+4 * patr) * sizeof(GLushort)));
 		}
 	}
-	
-	// CUBUL
-	/*
-	codCol = 0;
-	glBindVertexArray(VaoId[0]);
-	glUniform1i(codColLocation, codCol);
-	for (int patr = 0; patr < (NR_PARR_CILINDRU + 1) * NR_MERID_CILINDRU; patr++)
-	{
-		if ((patr + 1) % (NR_PARR_CILINDRU + 1) != 0) // nu sunt considerate fetele in care in stanga jos este Polul Nord
-			glDrawElements(
-				GL_QUADS,
-				4,
-				GL_UNSIGNED_SHORT,
-				(GLvoid*)((2 * (NR_PARR_CILINDRU + 1) * (NR_MERID_CILINDRU)+4 * patr) * sizeof(GLushort)));
-	}
-	*/
+
+	//Drumul
+	CreateRoadVBO();
+	//	Incarcarea texturii si legarea acesteia cu shaderul;
+	LoadTexture("road.jpg");
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glUniform1i(codColLocation, 1);
+	glUniform1i(glGetUniformLocation(ProgramId, "myTexture"), 0);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	//Pamantul
+	CreateGroundVBO();
+	glUniform1i(codColLocation, 0);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	glutSwapBuffers();
 	glFlush();
@@ -548,7 +582,7 @@ int main(int argc, char* argv[])
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);							//	Se folosesc 2 buffere pentru desen (unul pentru afisare si unul pentru randare => animatii cursive) si culori RGB + 1 buffer pentru adancime;
 	glutInitWindowSize(winWidth, winHeight);											//  Dimensiunea ferestrei;
 	glutInitWindowPosition(100, 100);													//  Pozitia initiala a ferestrei;
-	glutCreateWindow("Masina prin padure");		//	Creeaza fereastra de vizualizare, indicand numele acesteia;
+	glutCreateWindow("Sosea prin padure");		//	Creeaza fereastra de vizualizare, indicand numele acesteia;
 
 	//	Se initializeaza GLEW si se verifica suportul de extensii OpenGL modern disponibile pe sistemul gazda;
 	//  Trebuie initializat inainte de desenare;
